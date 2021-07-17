@@ -42,11 +42,6 @@ def index():
         receiver_address=str(request.form.get("name"))
         print(receiver_address)
     return render_template('index.html')
-
-
-@app.route('/download')
-def download_file():
-        return send_file("GFG.pdf",as_attachment=True)
         
 
 def get_letters(img):
