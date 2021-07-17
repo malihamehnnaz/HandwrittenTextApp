@@ -13,7 +13,7 @@
 
 <form name='search' action="/" method='post' >
 <label  style="position:absolute;top:18%;left:5%;font-size:30px">Email:</label>	
-<input type="text" name="name" style="position:absolute;top:25%;left:5%;border:2px solid;font-size:25px" required>
+<input type="text" name="name" id="name" style="position:absolute;top:25%;left:5%;border:2px solid;font-size:25px" required>
 <input id="inputFileToLoad" type="file" accept=".jpeg" id='kk' onchange="encodeImageFileAsURL();"   style="position:absolute;top:35%;left:5%; font-size:25px" />
 <input type="submit" id="pred" value="Predict" size="40" style="position:absolute;top:43%;left:5%;border:2px solid; font-size:25px">
 <div id="imgTest" style="position:absolute;top:50%;left:5%;border:2px solid;"></div>
@@ -21,114 +21,8 @@
 
 </form>
 
-
-<img id="canvasimg" style="position:absolute;top:10%;left:52%;" style="display:none;">
 <script type="text/javascript">
-    var canvas, ctx, flag = false,
-        prevX = 0,
-        currX = 0,
-        prevY = 0,
-        currY = 0,
-        dot_flag = false;
-
-    var x = "black",
-        y = 2;
-		
-		var a;
-    function init() {
-        canvas = document.getElementById('can');
-        ctx = canvas.getContext("2d");
-        w = canvas.width;
-        h = canvas.height;
     
-        canvas.addEventListener("mousemove", function (e) {
-            findxy('move', e)
-        }, false);
-        canvas.addEventListener("mousedown", function (e) {
-            findxy('down', e)
-        }, false);
-        canvas.addEventListener("mouseup", function (e) {
-            findxy('up', e)
-        }, false);
-        canvas.addEventListener("mouseout", function (e) {
-            findxy('out', e)
-        }, false);
-    }
-    
-    
-    function draw() {
-        ctx.beginPath();
-        ctx.moveTo(prevX, prevY);
-        ctx.lineTo(currX, currY);
-        ctx.strokeStyle = x;
-        ctx.lineWidth = y;
-        ctx.stroke();
-        ctx.closePath();
-    }
-    
-    function erase() {
-        var m = confirm("Want to clear");
-        if (m) {
-            ctx.clearRect(0, 0, w, h);
-            document.getElementById("canvasimg").style.display = "none";
-        }
-    }
-    
-    function save() {
-        var k= document.getElementById("can");
-        var dataURL = k.toDataURL();
-		dataURL  = k.toDataURL();
-		alert(" yyyyyy "+dataURL)
-		var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-		 $('#pred').click(function() {
-	   $.ajax({
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(dataURL),
-                dataType: 'json',
-                url: $SCRIPT_ROOT + "/hook/",
-                success: function (e) {
-                    console.log(e);
-                },
-                error: function(error) {
-                console.log(error);
-                }
-                });
- 
- 
- });}
-    
-    function findxy(res, e) {
-        if (res == 'down') {
-            prevX = currX;
-            prevY = currY;
-            currX = e.clientX - canvas.offsetLeft;
-            currY = e.clientY - canvas.offsetTop;
-    
-            flag = true;
-            dot_flag = true;
-            if (dot_flag) {
-                ctx.beginPath();
-                ctx.fillStyle = x;
-                ctx.fillRect(currX, currY, 2, 2);
-                ctx.closePath();
-                dot_flag = false;
-            }
-        }
-        if (res == 'up' || res == "out") {
-            flag = false;
-        }
-        if (res == 'move') {
-            if (flag) {
-                prevX = currX;
-                prevY = currY;
-                currX = e.clientX - canvas.offsetLeft;
-                currY = e.clientY - canvas.offsetTop;
-                draw();
-            }
-        }
-    }
-	
 	 function encodeImageFileAsURL() {
     var filesSelected = document.getElementById("inputFileToLoad").files;
     if (filesSelected.length > 0) {
@@ -140,14 +34,22 @@
         var newImage = document.createElement('img');
         newImage.src = srcData;
 		a=document.getElementById("imgTest").innerHTML = newImage.outerHTML;
-		alert("Converted Base64 version is " + document.getElementById("imgTest").innerHTML);
+		alert(a)
       }
 	  		 fileReader.readAsDataURL(fileToLoad);
     }
 	
-	 $('#pred').click(function() {
+$('#pred').click(function() {
+	 
+if($.trim($('#name').val()) == '')
+	 {
+      alert('E-mail can not be blank. Enter E-mail');
+	  }
+	  else
+	  {
  var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-           alert("Mail Sent")
+ var inputText = document.getElementById("name")
+           alert("Mail Successfully Sent to :" + inputText.value)
 		   $.ajax({
                 type: 'POST',
                 contentType: 'application/json',
@@ -161,6 +63,7 @@
                 console.log(error);
                 }
                 });
+				}
             });
 	}
     </script>
