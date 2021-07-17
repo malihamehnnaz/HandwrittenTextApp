@@ -1,0 +1,168 @@
+<html>
+<head>
+<link rel="shortcut icon" href="#" />
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+<meta charset="utf-8" name="viewpoint" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body bgcolor="#AED6F1 " text ="white" onload="init()">
+
+<h1 style= "border:black;border-width:5px;border-style:dashed;text-align: center;"> HANDWRITTEN TEXT RECOGNITION </h1>
+
+<form name='search' action="/" method='post' >
+<label  style="position:absolute;top:18%;left:5%;font-size:30px">Email:</label>	
+<input type="text" name="name" style="position:absolute;top:25%;left:5%;border:2px solid;font-size:25px" required>
+<input id="inputFileToLoad" type="file" accept=".jpeg" id='kk' onchange="encodeImageFileAsURL();"   style="position:absolute;top:35%;left:5%; font-size:25px" />
+<input type="submit" id="pred" value="Predict" size="40" style="position:absolute;top:43%;left:5%;border:2px solid; font-size:25px">
+<div id="imgTest" style="position:absolute;top:50%;left:5%;border:2px solid;"></div>
+<a href="https://www.dropbox.com/s/wapifwb5ta1hxzx/GFG.pdf?dl=0" class="button" size="40" style="position:absolute;top:52%;left:5%;border:2px solid; font-size:25px">Show</a>
+
+</form>
+
+
+<img id="canvasimg" style="position:absolute;top:10%;left:52%;" style="display:none;">
+<script type="text/javascript">
+    var canvas, ctx, flag = false,
+        prevX = 0,
+        currX = 0,
+        prevY = 0,
+        currY = 0,
+        dot_flag = false;
+
+    var x = "black",
+        y = 2;
+		
+		var a;
+    function init() {
+        canvas = document.getElementById('can');
+        ctx = canvas.getContext("2d");
+        w = canvas.width;
+        h = canvas.height;
+    
+        canvas.addEventListener("mousemove", function (e) {
+            findxy('move', e)
+        }, false);
+        canvas.addEventListener("mousedown", function (e) {
+            findxy('down', e)
+        }, false);
+        canvas.addEventListener("mouseup", function (e) {
+            findxy('up', e)
+        }, false);
+        canvas.addEventListener("mouseout", function (e) {
+            findxy('out', e)
+        }, false);
+    }
+    
+    
+    function draw() {
+        ctx.beginPath();
+        ctx.moveTo(prevX, prevY);
+        ctx.lineTo(currX, currY);
+        ctx.strokeStyle = x;
+        ctx.lineWidth = y;
+        ctx.stroke();
+        ctx.closePath();
+    }
+    
+    function erase() {
+        var m = confirm("Want to clear");
+        if (m) {
+            ctx.clearRect(0, 0, w, h);
+            document.getElementById("canvasimg").style.display = "none";
+        }
+    }
+    
+    function save() {
+        var k= document.getElementById("can");
+        var dataURL = k.toDataURL();
+		dataURL  = k.toDataURL();
+		alert(" yyyyyy "+dataURL)
+		var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+		 $('#pred').click(function() {
+	   $.ajax({
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(dataURL),
+                dataType: 'json',
+                url: $SCRIPT_ROOT + "/hook/",
+                success: function (e) {
+                    console.log(e);
+                },
+                error: function(error) {
+                console.log(error);
+                }
+                });
+ 
+ 
+ });}
+    
+    function findxy(res, e) {
+        if (res == 'down') {
+            prevX = currX;
+            prevY = currY;
+            currX = e.clientX - canvas.offsetLeft;
+            currY = e.clientY - canvas.offsetTop;
+    
+            flag = true;
+            dot_flag = true;
+            if (dot_flag) {
+                ctx.beginPath();
+                ctx.fillStyle = x;
+                ctx.fillRect(currX, currY, 2, 2);
+                ctx.closePath();
+                dot_flag = false;
+            }
+        }
+        if (res == 'up' || res == "out") {
+            flag = false;
+        }
+        if (res == 'move') {
+            if (flag) {
+                prevX = currX;
+                prevY = currY;
+                currX = e.clientX - canvas.offsetLeft;
+                currY = e.clientY - canvas.offsetTop;
+                draw();
+            }
+        }
+    }
+	
+	 function encodeImageFileAsURL() {
+    var filesSelected = document.getElementById("inputFileToLoad").files;
+    if (filesSelected.length > 0) {
+      var fileToLoad = filesSelected[0];
+      var fileReader = new FileReader();
+
+      fileReader.onload = function(fileLoadedEvent) {
+        var srcData = fileLoadedEvent.target.result; 
+        var newImage = document.createElement('img');
+        newImage.src = srcData;
+		a=document.getElementById("imgTest").innerHTML = newImage.outerHTML;
+		alert("Converted Base64 version is " + document.getElementById("imgTest").innerHTML);
+      }
+	  		 fileReader.readAsDataURL(fileToLoad);
+    }
+	
+	 $('#pred').click(function() {
+ var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+           alert("Mail Sent")
+		   $.ajax({
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(a),
+                dataType: 'json',
+                url: $SCRIPT_ROOT + "/predict/",
+                success: function (e) {
+                    console.log(e);
+                },
+                error: function(error) {
+                console.log(error);
+                }
+                });
+            });
+	}
+    </script>
+    </body>
+    </html>
