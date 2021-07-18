@@ -92,23 +92,23 @@ def mainpdf():
     s = " "
     k = 0
     for i in os.listdir(dir):
-        list = os.listdir(dir)  # dir is your directory path
+        list = os.listdir(dir) # dir is your directory path
         for j in os.listdir(dir):
-            letter, image = get_letters(os.path.join(dir, j))
-            word = get_word(letter)
-            sentence.insert(k, word)
-            k = k + 1
-        s = s.join(sentence)
-        n = 40
-        b = ([s[i:i + n] for i in range(0, len(s), n)])
-        l = 0
-        a = 1
-        while l < len(b):
-            m = (b[l])
-            pdf.cell(200, 10, txt=m, ln=a, align='L')
-            a = a + 1
-            l = l + 1
-        pdf.output("GFG.pdf")
+            letter,image = get_letters(os.path.join(dir,j))
+            word= get_word(letter)
+            sentence.insert(k,word) 
+            k=k+1
+        s=s.join(sentence) 
+        n=40
+        b=([s[i:i+n] for i in range(0, len(s), n)])
+        l=0
+        a=1
+        while l<len(b):
+            m=(b[l])
+            pdf.cell(200, 10, txt =m, ln=a, align = 'L')
+            a=a+1
+            l=l+1
+        pdf.output("GFG.pdf") 
     print(sentence)
     
     
@@ -140,7 +140,7 @@ def mainpdf():
     filepath = folder / filename
     target = "/mmmjjjjjjjjjj/"              
     targetfile = target + filename  
-    d = dropbox.Dropbox('ob6sTjPcwr4AAAAAAAAAAa6rE3tifnzBX-M7c2O3XbdWUxeghrw7lly2MvYohXTt')
+    d = dropbox.Dropbox('kNql765KtvQAAAAAAAAAAUiTzTr2uKcGs5yC58H1J1XhuF2dujH7f8RCqjzFH3N9')
     with filepath.open("rb") as f:
         meta = d.files_upload(f.read(), targetfile, mode=dropbox.files.WriteMode("overwrite"))
     session.quit()
@@ -149,24 +149,13 @@ def image_pro():
     image = cv2.imread('given_user.jpg')
     img = cv2.resize(image, (1200,800), interpolation = cv2.INTER_AREA)
     def apply_brightness_contrast(input_img, brightness = 0, contrast = 0):
-        if brightness != 0:
-            if brightness > 0:
-                shadow = brightness
-                highlight = 255
-            else:
-                shadow = 0
-                highlight = 255 + brightness
-            alpha_b = (highlight - shadow)/255
-            gamma_b = shadow
-            buf = cv2.addWeighted(input_img, alpha_b, input_img, 0, gamma_b)
-        else:
-            buf = input_img.copy()
-        if contrast != 0:
-            f = 131*(contrast + 127)/(127*(131-contrast))
-            alpha_c = f
-            gamma_c = 127*(1-f)
-            buf = cv2.addWeighted(buf, alpha_c, buf, 0, gamma_c)
+        b = (255 - brightness)/255
+        buf = cv2.addWeighted(input_img, b, input_img, 0, brightness)
+        f = 131*(contrast + 127)/(127*(131-contrast))
+        c = 127*(1-f)
+        buf = cv2.addWeighted(buf,f, buf, 0,c)
         return buf
+    
     out = np.zeros((1200, 1000), dtype = np.uint8)
     out = apply_brightness_contrast(img, 40, 50)
     cv2.imwrite('out.png', out)
@@ -177,10 +166,9 @@ def image_pro():
     gray = cv2.morphologyEx(gray, cv2.MORPH_OPEN, np.ones((2, 2), dtype=np.uint8)) # Perform noise filtering
     coords = cv2.findNonZero(gray) # Find all non-zero points (text)
     x, y, w, h = cv2.boundingRect(coords) # Find minimum spanning bounding box
-    rect = img[y:y+h, x:x+w] # Crop the image - note we do this on the original image
-    cv2.imwrite("rect.png", rect) # Save the image
-    
-    return rect
+    crop = img[y:y+h, x:x+w] 
+    cv2.imwrite("rect.png", crop) 
+    return crop
 
 def sort_contours(cnts, method="left-to-right"):
     reverse = False
@@ -192,7 +180,6 @@ def sort_contours(cnts, method="left-to-right"):
     boundingBoxes = [cv2.boundingRect(c) for c in cnts]
     (cnts, boundingBoxes) = zip(*sorted(zip(cnts, boundingBoxes),
     key=lambda b: b[1][i], reverse=reverse))
-    # return the list of sorted contours and bounding boxes
     return (cnts, boundingBoxes)
 
 def mainline():
@@ -200,6 +187,7 @@ def mainline():
     gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray,(5,5),0)
     ret,thresh = cv2.threshold(gray,127,255,cv2.THRESH_BINARY_INV)
+    cv2.imwrite("rect2.png", thresh) 
     kernel = np.ones((7,60), np.uint8)
     img_dilation = cv2.dilate(thresh, kernel, iterations=1)
     ctrs, hier = cv2.findContours(img_dilation.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -232,26 +220,18 @@ def mainline():
             k=k+1
     mainpdf()
 
-
-def show(a):
-    kkk=Img.fromarray(a)
-    kkk.save("main_image.png")
-    mainline()
-
-
 @app.route('/predict/',methods=["GET","POST"])
 def predict():
     if request.method=="POST":
         qtc_data = request.get_json()
         imgstring=(str(qtc_data))
         imgstring=(imgstring.replace('<img src="data:image/jpeg;base64,',''))
-        imgstring += "=" * ((4 - len(imgstring) % 4) % 4) #ugh
+        imgstring += "=" * ((4 - len(imgstring) % 4) % 4) 
         imgdata = base64.b64decode(imgstring)
         filename = 'given_user.jpg'  
         with open(filename, 'wb') as f:
             f.write(imgdata)
-        img = cv2.imread('given_user.jpg')
-        show(img)
+        mainline()
     return render_template('index.html')
 
 
